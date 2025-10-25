@@ -171,36 +171,40 @@ export default function Planning(){
     //         employee_name: employee?.name || null
     //     };
     // };
-   const handleEmployeeSelect = (postId, shiftId, employee, date) => {
+    const handleEmployeeSelect = (postId, shiftId, employee, date) => {
     const key = `${postId}-${shiftId}`;
 
-    // Initialize date if not existing
+    // Initialize date container if it doesn't exist
     if (!planningDataRefs.current[date]) {
         planningDataRefs.current[date] = {};
     }
 
-    // Initialize the array for this cell if not existing
-    if (!planningDataRefs.current[date][key]) {
+    // Initialize the array for this specific post + shift
+    if (!Array.isArray(planningDataRefs.current[date][key])) {
         planningDataRefs.current[date][key] = [];
     }
 
-    // Get current employees assigned to this shift
+    // Get the current assigned employees
     const currentEmployees = planningDataRefs.current[date][key];
 
-    // Check if this employee is already assigned
+    // Avoid adding the same employee twice
     const alreadyExists = currentEmployees.some(e => e.emp_id === employee.emp_id);
 
-    // Add the employee if not already in the list
+    // Add employee if not already assigned
     if (!alreadyExists) {
-        planningDataRefs.current[date][key].push({
+        currentEmployees.push({
         shift_id: shiftId,
-        emp_id: employee?.emp_id || null,
+        emp_id: employee.emp_id,
         task_id: postId,
         plan_date: date,
-        employee_name: employee?.name || null
+        employee_name: employee.name
         });
     }
+
+    // (Optional) Log for debugging
+    console.log(`🧩 Added employee ${employee.name} to post ${postId}, shift ${shiftId}, date ${date}`);
     };
+
 
     // // Function to get selected employee for a specific post and shift
     // const getSelectedEmployee = (postId, shiftId, date) => {
@@ -286,30 +290,66 @@ export default function Planning(){
         const planningArray = [];
 
         // Check if planning data exists for the current date
-        if (planningDataRefs.current?.[currentDate]) {
-            // Loop over each shift assignment
-            Object.values(planningDataRefs.current[currentDate]).forEach(item => {
-                if (!item) return;
+        // if (planningDataRefs.current?.[currentDate]) {
+        //     // Loop over each shift assignment
+        //     Object.values(planningDataRefs.current[currentDate]).forEach(item => {
+        //         if (!item) return;
 
-                if (Array.isArray(item)) {
-                    // Multi-employee shift
-                    item.forEach(emp => {
-                        if (emp?.emp_id) {
-                            planningArray.push({
-                                emp_id: emp.emp_id
-                                // You can add other fields if needed, e.g., post_id, shift_id
-                            });
-                        }
-                    });
-                } else if (item.emp_id) {
-                    // Single-employee shift
+        //         if (Array.isArray(item)) {
+        //             // Multi-employee shift
+        //             item.forEach(emp => {
+        //                 if (emp?.emp_id) {
+        //                     planningArray.push({
+        //                         emp_id: emp.emp_id
+        //                         // Add other fields if required
+        //                     });
+        //                 }
+        //             });
+        //         } else if (item.emp_id) {
+        //             // Single-employee shift
+        //             planningArray.push({
+        //                 emp_id: item.emp_id
+        //                 // Add other fields if required
+        //             });
+        //         }
+        //     });
+        // }
+        if (planningDataRefs.current?.[currentDate]) {
+        // Loop over each task (post)
+        Object.entries(planningDataRefs.current[currentDate]).forEach(([postId, shifts]) => {
+            if (!shifts) return;
+
+            // Loop over each shift inside the task
+            Object.entries(shifts).forEach(([shiftId, employees]) => {
+            if (!employees) return;
+
+            if (Array.isArray(employees)) {
+                // Multiple employees assigned
+                employees.forEach(emp => {
+                if (emp?.emp_id) {
                     planningArray.push({
-                        emp_id: item.emp_id
-                        // Add other fields if required
+                    emp_id: emp.emp_id,
+                    shift_id: Number(shiftId),
+                    task_id: Number(postId),
+                    plan_date: currentDate,
+                    employee_name: emp.employee_name || null, // optional extra info
                     });
                 }
+                });
+            } else if (employees.emp_id) {
+                // Single employee assigned
+                planningArray.push({
+                emp_id: employees.emp_id,
+                shift_id: Number(shiftId),
+                task_id: Number(postId),
+                plan_date: currentDate,
+                employee_name: employees.employee_name || null,
+                });
+            }
             });
+        });
         }
+
 
         // No data to save
         if (planningArray.length === 0) {
@@ -445,6 +485,12 @@ export default function Planning(){
             </>
         );
     }
+
+
+
+    //NEEEEEEEEEEEEEEEEEEEEEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW(25/10/2025)
+    // Add these near the top with your other useState hooks
+   
 
     return(
         <>
@@ -608,6 +654,8 @@ export default function Planning(){
                 </div>
                 </div>
                 )}
+
+            
 
                 {/* Action Buttons */}
                 <div className='cntbtns' style={{ marginTop: "30px" }}>

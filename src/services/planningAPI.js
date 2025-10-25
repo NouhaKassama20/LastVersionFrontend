@@ -4,6 +4,7 @@ export const planningApi = {
   // Save planning data
   savePlanning: async (planningData) => {
     try {
+      console.log("📤 Sending planning data:", planningData);
       const response = await fetch(`${API_BASE_URL}/planning/save`, {
         method: 'POST',
         headers: {
