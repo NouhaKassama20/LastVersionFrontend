@@ -27,14 +27,7 @@ export default function Planning(){
         { id: 1, name: "Pizzaiolo" },
         { id: 2, name: "Livreur" },
         { id: 3, name: "Agent polyvalent" },
-        { id: 4, name: "Prepateur" },
-        { id: 5, name: "Cassier" },
-        { id: 6, name: "Serveur" },
-        { id: 7, name: "Plongeur" },
-        { id: 8, name: "Manageur" },
-        { id: 9, name: "Packaging" },
-        { id: 10, name: "Topping" },
-        { id: 11, name: "Bar" }
+        
     ];
 
     // Define shifts
@@ -157,20 +150,6 @@ export default function Planning(){
         // ... include all your fallback employees with emp_id
     ];
 
-    // Function to handle employee selection in a dropdown
-    // const handleEmployeeSelect = (postId, shiftId, employee, date) => {
-    //     const key = `${postId}-${shiftId}`;
-    //     if (!planningDataRefs.current[date]) {
-    //         planningDataRefs.current[date] = {};
-    //     }
-    //     planningDataRefs.current[date][key] = {
-    //         shift_id: shiftId,
-    //         emp_id: employee?.emp_id || null,
-    //         task_id: postId,
-    //         plan_date: date,
-    //         employee_name: employee?.name || null
-    //     };
-    // };
     const handleEmployeeSelect = (postId, shiftId, employee, date) => {
     const key = `${postId}-${shiftId}`;
 
@@ -206,17 +185,7 @@ export default function Planning(){
     };
 
 
-    // // Function to get selected employee for a specific post and shift
-    // const getSelectedEmployee = (postId, shiftId, date) => {
-    //     if (!planningDataRefs.current[date]) return null;
-        
-    //     const key = `${postId}-${shiftId}`;
-    //     const assignment = planningDataRefs.current[date][key];
-    //     if (assignment && assignment.emp_id) {
-    //         return employees.find(emp => emp.emp_id === assignment.emp_id) || null;
-    //     }
-    //     return null;
-    // };
+  
     // Function to get selected employees for a specific post and shift
     const getSelectedEmployees = (postId, shiftId, date) => {
     // Make sure the date exists
@@ -250,37 +219,7 @@ export default function Planning(){
 
 
 
-    // Save planning for current tab
-    // const savePlanning = async () => {
-    //     const currentDate = getCurrentDate();
-    //     try {
-    //         setSaving(true);
-            
-    //         // Convert the planning data object to array
-    //         const planningArray = planningDataRefs.current[currentDate] 
-    //             ? Object.values(planningDataRefs.current[currentDate]).filter(item => item.emp_id !== null)
-    //             : [];
-
-    //         if (planningArray.length === 0) {
-    //             alert('No planning data to save!');
-    //             return;
-    //         }
-
-    //         await planningApi.savePlanning({
-    //             plan_date: currentDate,
-    //             assignments: planningArray
-    //         });
-
-    //         alert(`Planning for ${formatDateDisplay(currentDate)} saved successfully!`);
-    //         // Reload the planning to reflect changes
-    //         await loadExistingPlanningForTab(activeTab);
-    //     } catch (error) {
-    //         console.error('Error saving planning:', error);
-    //         alert('Error saving planning: ' + error.message);
-    //     } finally {
-    //         setSaving(false);
-    //     }
-    // };
+    
     const savePlanning = async () => {
     const currentDate = getCurrentDate();
 
@@ -289,74 +228,44 @@ export default function Planning(){
 
         const planningArray = [];
 
-        // Check if planning data exists for the current date
-        // if (planningDataRefs.current?.[currentDate]) {
-        //     // Loop over each shift assignment
-        //     Object.values(planningDataRefs.current[currentDate]).forEach(item => {
-        //         if (!item) return;
+         if (planningDataRefs.current?.[currentDate]) {
+            // Loop over each key (ex: "1-0", "2-1", etc.)
+            Object.entries(planningDataRefs.current[currentDate]).forEach(([key, employees]) => {
+                if (!employees) return;
 
-        //         if (Array.isArray(item)) {
-        //             // Multi-employee shift
-        //             item.forEach(emp => {
-        //                 if (emp?.emp_id) {
-        //                     planningArray.push({
-        //                         emp_id: emp.emp_id
-        //                         // Add other fields if required
-        //                     });
-        //                 }
-        //             });
-        //         } else if (item.emp_id) {
-        //             // Single-employee shift
-        //             planningArray.push({
-        //                 emp_id: item.emp_id
-        //                 // Add other fields if required
-        //             });
-        //         }
-        //     });
-        // }
-        if (planningDataRefs.current?.[currentDate]) {
-        // Loop over each task (post)
-        Object.entries(planningDataRefs.current[currentDate]).forEach(([postId, shifts]) => {
-            if (!shifts) return;
+                // Split the key to get postId and shiftId
+                const [postId, shiftId] = key.split('-');
 
-            // Loop over each shift inside the task
-            Object.entries(shifts).forEach(([shiftId, employees]) => {
-            if (!employees) return;
-
-            if (Array.isArray(employees)) {
+                if (Array.isArray(employees)) {
                 // Multiple employees assigned
                 employees.forEach(emp => {
-                if (emp?.emp_id) {
+                    if (emp?.emp_id) {
                     planningArray.push({
-                    emp_id: emp.emp_id,
-                    shift_id: Number(shiftId),
-                    task_id: Number(postId),
-                    plan_date: currentDate,
-                    employee_name: emp.employee_name || null, // optional extra info
+                        shift_id: parseInt(shiftId),
+                        emp_id: emp.emp_id,
+                        task_id: parseInt(postId),
+                        plan_date: currentDate,
                     });
-                }
+                    }
                 });
-            } else if (employees.emp_id) {
+                } else if (employees.emp_id) {
                 // Single employee assigned
                 planningArray.push({
-                emp_id: employees.emp_id,
-                shift_id: Number(shiftId),
-                task_id: Number(postId),
-                plan_date: currentDate,
-                employee_name: employees.employee_name || null,
+                    shift_id: parseInt(shiftId),
+                    emp_id: employees.emp_id,
+                    task_id: parseInt(postId),
+                    plan_date: currentDate,
                 });
-            }
+                }
             });
-        });
         }
-
 
         // No data to save
         if (planningArray.length === 0) {
             alert('No planning data to save!');
             return;
         }
-
+        console.log("📦 planningArray before save:", planningArray);
         // Save the planning via API
         await planningApi.savePlanning({
             plan_date: currentDate,
@@ -376,35 +285,6 @@ export default function Planning(){
     }
     };
 
-
-    // Save all planning for the entire week
-    // const saveAllPlanning = async () => {
-    //     try {
-    //         setSaving(true);
-    //         let totalSaved = 0;
-
-    //         for (const date of weekDates) {
-    //             const planningArray = planningDataRefs.current[date] 
-    //                 ? Object.values(planningDataRefs.current[date]).filter(item => item.emp_id !== null)
-    //                 : [];
-
-    //             if (planningArray.length > 0) {
-    //                 await planningApi.savePlanning({
-    //                     plan_date: date,
-    //                     assignments: planningArray
-    //                 });
-    //                 totalSaved += planningArray.length;
-    //             }
-    //         }
-
-    //         alert(`All planning saved successfully! Total assignments: ${totalSaved}`);
-    //     } catch (error) {
-    //         console.error('Error saving all planning:', error);
-    //         alert('Error saving planning: ' + error.message);
-    //     } finally {
-    //         setSaving(false);
-    //     }
-    // };
     const saveAllPlanning = async () => {
     try {
         setSaving(true);
@@ -485,11 +365,6 @@ export default function Planning(){
             </>
         );
     }
-
-
-
-    //NEEEEEEEEEEEEEEEEEEEEEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW(25/10/2025)
-    // Add these near the top with your other useState hooks
    
 
     return(
@@ -596,13 +471,6 @@ export default function Planning(){
                                 {post.name}
                             </td>
                             {shifts.map(shift => (
-                                // <td key={shift.id}>
-                                //     <DropDownList 
-                                //         employees={employees}
-                                //         onSelect={(employee) => handleEmployeeSelect(post.id, shift.id, employee, getCurrentDate())}
-                                //         selectedEmployee={getSelectedEmployee(post.id, shift.id, getCurrentDate())}
-                                //     />
-                                // </td>
                                 <td key={shift.id}>
                                 {/* Display already selected employees */}
                                 {(getSelectedEmployees(post.id, shift.id, getCurrentDate()) || []).map((emp, idx) => (
